@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>專案管理 - 管理系統</title>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="../frontend/css/main.css">
+    <link rel="stylesheet" href="css/admin.css">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Highlight.js -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+</head>
+<body>
+    <div class="admin-layout">
+        <!-- 側邊欄 -->
+        <aside class="admin-sidebar">
+            <div class="admin-sidebar-header">
+                <h2>管理系統</h2>
+            </div>
+            
+            <nav>
+                <ul class="admin-nav">
+                    <li><a href="dashboard.html"><i class="fas fa-home"></i> 首頁</a></li>
+                    <li><a href="project-editor.html" class="active"><i class="fas fa-project-diagram"></i> 專案管理</a></li>
+                    <li><a href="devlog-editor.html"><i class="fas fa-book"></i> 開發紀錄</a></li>
+                    <li><a href="../frontend/index.html" target="_blank"><i class="fas fa-external-link-alt"></i> 前台網站</a></li>
+                    <li><a href="#" id="logout-btn"><i class="fas fa-sign-out-alt"></i> 登出</a></li>
+                </ul>
+            </nav>
+        </aside>
+        
+        <!-- 主要內容 -->
+        <main class="admin-content">
+            <div class="admin-header">
+                <h1>專案管理</h1>
+                <div class="admin-actions">
+                    <button class="btn btn-primary" id="new-project-btn">
+                        <i class="fas fa-plus"></i> 新增專案
+                    </button>
+                </div>
+            </div>
+            
+            <!-- 專案列表 -->
+            <div id="project-list-view" class="data-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>標題</th>
+                            <th>技術</th>
+                            <th>建立時間</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="projects-tbody"></tbody>
+                </table>
+            </div>
+            
+            <!-- 編輯表單 -->
+            <div id="project-form-view" style="display: none;">
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                        <h2 id="form-title">新增專案</h2>
+                        <button class="btn btn-secondary" id="cancel-btn">
+                            <i class="fas fa-times"></i> 取消
+                        </button>
+                    </div>
+                    
+                    <form id="project-form">
+                        <input type="hidden" id="project-id">
+                        
+                        <div class="form-group">
+                            <label for="title">專案標題 *</label>
+                            <input type="text" id="title" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="description">簡短描述</label>
+                            <textarea id="description" rows="3"></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="technologies">技術標籤（用逗號分隔）</label>
+                            <input type="text" id="technologies" placeholder="例如：React, Node.js, MongoDB">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="demo-url">線上展示連結</label>
+                            <input type="url" id="demo-url" placeholder="https://...">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="repo-url">原始碼連結</label>
+                            <input type="url" id="repo-url" placeholder="https://github.com/...">
+                        </div>
+                        
+                        <div class="form-group image-upload">
+                            <label>專案縮圖</label>
+                            <div class="image-upload-area" id="image-upload-area">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                                <p>點擊或拖曳圖片到此處上傳</p>
+                                <input type="file" id="image-input" accept="image/*" style="display: none;">
+                            </div>
+                            <div class="image-preview" id="image-preview" style="display: none;">
+                                <img id="preview-img" src="" alt="預覽">
+                                <input type="hidden" id="thumbnail-url">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>詳細內容（Markdown）</label>
+                        </div>
+                        
+                        <div class="editor-container">
+                            <div class="editor-panel">
+                                <h3>編輯</h3>
+                                <textarea id="content-editor" class="editor-textarea"></textarea>
+                            </div>
+                            <div class="editor-panel">
+                                <h3>預覽</h3>
+                                <div id="content-preview" class="editor-preview"></div>
+                            </div>
+                        </div>
+                        
+                        <div style="margin-top: 2rem; display: flex; gap: 1rem;">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> 儲存
+                            </button>
+                            <button type="button" class="btn btn-secondary" id="cancel-btn-2">
+                                取消
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <!-- JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="../frontend/js/utils.js"></script>
+    <script src="../frontend/js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/admin-api.js"></script>
+    <script src="js/editor.js"></script>
+    
+    <script>
+        let editor;
+        let currentProjectId = null;
+        
+        // 載入專案列表
+        async function loadProjects() {
+            try {
+                const response = await api.getAllProjects();
+                const tbody = document.getElementById('projects-tbody');
+                
+                if (response.success && response.data && response.data.length > 0) {
+                    tbody.innerHTML = response.data.map(project => `
+                        <tr>
+                            <td>${project.title}</td>
+                            <td>
+                                ${(project.technologies || []).slice(0, 3).map(tech => 
+                                    `<span class="tech-tag">${tech}</span>`
+                                ).join(' ')}
+                            </td>
+                            <td>${formatDate(project.created_at, 'date')}</td>
+                            <td>
+                                <div class="actions">
+                                    <button class="btn btn-secondary" onclick="editProject(${project.id})">
+                                        <i class="fas fa-edit"></i> 編輯
+                                    </button>
+                                    <button class="btn btn-secondary" onclick="deleteProject(${project.id})">
+                                        <i class="fas fa-trash"></i> 刪除
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    `).join('');
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="4" style="text-align: center;">目前沒有專案</td></tr>';
+                }
+            } catch (error) {
+                console.error('載入專案列表失敗:', error);
+            }
+        }
+        
+        // 顯示表單
+        function showForm(isEdit = false) {
+            document.getElementById('project-list-view').style.display = 'none';
+            document.getElementById('project-form-view').style.display = 'block';
+            document.getElementById('form-title').textContent = isEdit ? '編輯專案' : '新增專案';
+            
+            if (!isEdit) {
+                document.getElementById('project-form').reset();
+                document.getElementById('project-id').value = '';
+                document.getElementById('thumbnail-url').value = '';
+                document.getElementById('image-preview').style.display = 'none';
+                currentProjectId = null;
+                if (editor) editor.clear();
+            }
+        }
+        
+        // 隱藏表單
+        function hideForm() {
+            document.getElementById('project-list-view').style.display = 'block';
+            document.getElementById('project-form-view').style.display = 'none';
+            loadProjects();
+        }
+        
+        // 編輯專案
+        async function editProject(id) {
+            try {
+                const response = await api.getProjectById(id);
+                
+                if (response.success && response.data) {
+                    const project = response.data;
+                    currentProjectId = id;
+                    
+                    document.getElementById('project-id').value = id;
+                    document.getElementById('title').value = project.title;
+                    document.getElementById('description').value = project.description || '';
+                    document.getElementById('technologies').value = (project.technologies || []).join(', ');
+                    document.getElementById('demo-url').value = project.demo_url || '';
+                    document.getElementById('repo-url').value = project.repo_url || '';
+                    document.getElementById('thumbnail-url').value = project.thumbnail_url || '';
+                    
+                    if (project.thumbnail_url) {
+                        document.getElementById('preview-img').src = project.thumbnail_url;
+                        document.getElementById('image-preview').style.display = 'block';
+                    }
+                    
+                    if (editor) {
+                        editor.setValue(project.content || '');
+                    }
+                    
+                    showForm(true);
+                }
+            } catch (error) {
+                console.error('載入專案失敗:', error);
+            }
+        }
+        
+        // 刪除專案
+        async function deleteProject(id) {
+            if (!confirm('確定要刪除這個專案嗎？')) return;
+            
+            try {
+                const response = await adminApi.deleteProjectWithAuth(id);
+                
+                if (response.success) {
+                    api.showSuccessMessage('專案已刪除');
+                    loadProjects();
+                }
+            } catch (error) {
+                console.error('刪除專案失敗:', error);
+            }
+        }
+        
+        // 圖片上傳
+        function setupImageUpload() {
+            const uploadArea = document.getElementById('image-upload-area');
+            const imageInput = document.getElementById('image-input');
+            const preview = document.getElementById('image-preview');
+            const previewImg = document.getElementById('preview-img');
+            
+            uploadArea.addEventListener('click', () => imageInput.click());
+            
+            imageInput.addEventListener('change', async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                try {
+                    const response = await adminApi.uploadImageWithAuth(file);
+                    
+                    if (response.success && response.url) {
+                        document.getElementById('thumbnail-url').value = response.url;
+                        previewImg.src = response.url;
+                        preview.style.display = 'block';
+                        api.showSuccessMessage('圖片上傳成功');
+                    }
+                } catch (error) {
+                    console.error('圖片上傳失敗:', error);
+                }
+            });
+        }
+        
+        // 表單提交
+        document.getElementById('project-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const projectData = {
+                title: document.getElementById('title').value.trim(),
+                description: document.getElementById('description').value.trim(),
+                content: editor ? editor.getValue() : '',
+                technologies: document.getElementById('technologies').value
+                    .split(',')
+                    .map(t => t.trim())
+                    .filter(t => t),
+                demo_url: document.getElementById('demo-url').value.trim(),
+                repo_url: document.getElementById('repo-url').value.trim(),
+                thumbnail_url: document.getElementById('thumbnail-url').value.trim()
+            };
+            
+            try {
+                let response;
+                if (currentProjectId) {
+                    response = await adminApi.updateProjectWithAuth(currentProjectId, projectData);
+                } else {
+                    response = await adminApi.createProjectWithAuth(projectData);
+                }
+                
+                if (response.success) {
+                    api.showSuccessMessage(currentProjectId ? '專案已更新' : '專案已建立');
+                    hideForm();
+                }
+            } catch (error) {
+                console.error('儲存專案失敗:', error);
+            }
+        });
+        
+        // 頁面載入完成後執行
+        document.addEventListener('DOMContentLoaded', async () => {
+            await new Promise(resolve => setTimeout(resolve, 100));
+            
+            // 初始化編輯器
+            editor = new MarkdownEditor('content-editor', 'content-preview');
+            
+            // 設定圖片上傳
+            setupImageUpload();
+            
+            // 綁定按鈕事件
+            document.getElementById('new-project-btn').addEventListener('click', () => showForm(false));
+            document.getElementById('cancel-btn').addEventListener('click', hideForm);
+            document.getElementById('cancel-btn-2').addEventListener('click', hideForm);
+            
+            // 檢查是否有編輯參數
+            const editId = getQueryParam('id');
+            if (editId) {
+                editProject(editId);
+            } else {
+                loadProjects();
+            }
+        });
+        
+        // 全域函式
+        window.editProject = editProject;
+        window.deleteProject = deleteProject;
+    </script>
+</body>
+</html>

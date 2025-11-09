@@ -1,0 +1,294 @@
+/* 響應式設計 */
+
+/* 大螢幕 */
+@media (min-width: 1920px) {
+    .container {
+        max-width: 1600px;
+    }
+}
+
+/* 桌面 */
+@media (min-width: 1024px) {
+    .projects-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+/* 平板 */
+@media (min-width: 768px) and (max-width: 1023px) {
+    .container {
+        padding: 0 var(--spacing-lg);
+    }
+    
+    .projects-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .hero h1 {
+        font-size: 3rem;
+    }
+    
+    .hero p {
+        font-size: 1.1rem;
+    }
+    
+    .footer-content {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* 行動裝置 */
+@media (max-width: 767px) {
+    /* 容器 */
+    .container {
+        padding: 0 var(--spacing-md);
+    }
+    
+    /* 導航列 */
+    .navbar-menu {
+        position: fixed;
+        top: 70px;
+        left: 0;
+        right: 0;
+        background: rgba(15, 15, 30, 0.98);
+        flex-direction: column;
+        padding: var(--spacing-lg);
+        gap: var(--spacing-md);
+        transform: translateX(-100%);
+        transition: transform var(--transition-base);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+    }
+    
+    .navbar-menu.active {
+        transform: translateX(0);
+    }
+    
+    .navbar-toggle {
+        display: flex;
+    }
+    
+    .navbar-toggle.active span:nth-child(1) {
+        transform: rotate(45deg) translate(5px, 5px);
+    }
+    
+    .navbar-toggle.active span:nth-child(2) {
+        opacity: 0;
+    }
+    
+    .navbar-toggle.active span:nth-child(3) {
+        transform: rotate(-45deg) translate(7px, -6px);
+    }
+    
+    /* Hero 區塊 */
+    .hero {
+        padding-top: 100px;
+        min-height: 80vh;
+    }
+    
+    .hero h1 {
+        font-size: 2.5rem;
+    }
+    
+    .hero p {
+        font-size: 1rem;
+    }
+    
+    .hero-buttons {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .hero-buttons .btn {
+        width: 100%;
+    }
+    
+    /* 標題 */
+    h1 {
+        font-size: 2rem;
+    }
+    
+    h2 {
+        font-size: 1.8rem;
+    }
+    
+    h3 {
+        font-size: 1.5rem;
+    }
+    
+    .section-title h2 {
+        font-size: 2rem;
+    }
+    
+    /* 專案網格 */
+    .projects-grid {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-md);
+    }
+    
+    /* 時間軸 */
+    .timeline {
+        padding-left: var(--spacing-lg);
+    }
+    
+    .timeline-item {
+        padding-left: var(--spacing-md);
+    }
+    
+    .timeline-item::before {
+        left: -32px;
+        width: 12px;
+        height: 12px;
+    }
+    
+    /* 技能網格 */
+    .skills-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--spacing-sm);
+    }
+    
+    /* 頁尾 */
+    .footer-content {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-lg);
+    }
+    
+    .footer-social {
+        justify-content: center;
+    }
+    
+    /* 區塊間距 */
+    section {
+        padding: var(--spacing-xl) 0;
+    }
+    
+    /* 按鈕 */
+    .btn {
+        padding: var(--spacing-sm) var(--spacing-md);
+        font-size: 0.95rem;
+    }
+    
+    /* 卡片 */
+    .card {
+        padding: var(--spacing-md);
+    }
+    
+    /* Toast 通知 */
+    .toast {
+        left: var(--spacing-md);
+        right: var(--spacing-md);
+        bottom: var(--spacing-md);
+    }
+    
+    /* 篩選按鈕 */
+    .filter-buttons {
+        justify-content: flex-start;
+    }
+    
+    .filter-btn {
+        font-size: 0.9rem;
+        padding: 0.5rem 1rem;
+    }
+}
+
+/* 小型行動裝置 */
+@media (max-width: 480px) {
+    .hero h1 {
+        font-size: 2rem;
+    }
+    
+    .hero p {
+        font-size: 0.95rem;
+    }
+    
+    .skills-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .project-card-image {
+        height: 150px;
+    }
+}
+
+/* 觸控裝置優化 */
+@media (hover: none) and (pointer: coarse) {
+    /* 增大觸控目標 */
+    .btn,
+    .navbar-menu a,
+    .filter-btn,
+    .like-button {
+        min-height: 44px;
+        min-width: 44px;
+    }
+    
+    /* 移除 hover 效果 */
+    .project-card:hover {
+        transform: none;
+    }
+    
+    .skill-item:hover {
+        transform: none;
+    }
+    
+    /* 點擊時的視覺回饋 */
+    .btn:active {
+        transform: scale(0.95);
+    }
+    
+    .project-card:active {
+        transform: scale(0.98);
+    }
+}
+
+/* 列印樣式 */
+@media print {
+    .navbar,
+    .footer,
+    .like-button,
+    .btn {
+        display: none;
+    }
+    
+    body {
+        background: white;
+        color: black;
+    }
+    
+    .hero {
+        min-height: auto;
+        padding: 2rem 0;
+    }
+}
+
+/* 深色模式支援（未來擴展） */
+@media (prefers-color-scheme: dark) {
+    /* 已經是深色主題，無需額外調整 */
+}
+
+/* 減少動畫（無障礙） */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+    
+    html {
+        scroll-behavior: auto;
+    }
+}
+
+/* 高對比度模式 */
+@media (prefers-contrast: high) {
+    :root {
+        --primary: #b8a3ff;
+        --text-secondary: #d0d0d0;
+    }
+    
+    .btn,
+    .card,
+    .project-card {
+        border: 2px solid var(--primary);
+    }
+}

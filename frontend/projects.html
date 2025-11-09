@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="專案作品 - 我的開發作品集">
+    <title>專案作品 - DevPortfolio</title>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- AOS 動畫庫 -->
+    <link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css">
+</head>
+<body data-page="projects">
+    <!-- 導航列 -->
+    <div id="navbar-container"></div>
+    
+    <!-- 專案作品區塊 -->
+    <section class="container" style="padding-top: 120px;">
+        <div class="section-title" data-aos="fade-up">
+            <h2>專案作品</h2>
+            <p>我的開發作品集</p>
+        </div>
+        
+        <!-- 載入中 -->
+        <div id="projects-container" class="projects-grid"></div>
+    </section>
+    
+    <!-- 頁尾 -->
+    <div id="footer-container"></div>
+    
+    <!-- JavaScript -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/components/navbar.js"></script>
+    <script src="js/components/footer.js"></script>
+    <script src="js/components/project-card.js"></script>
+    
+    <script>
+        // 初始化 AOS 動畫
+        AOS.init({
+            duration: 1000,
+            once: true
+        });
+        
+        // 載入所有專案
+        async function loadProjects() {
+            try {
+                showLoading('projects-container');
+                const response = await api.getAllProjects();
+                
+                if (response.success && response.data) {
+                    if (response.data.length === 0) {
+                        document.getElementById('projects-container').innerHTML = 
+                            '<div class="text-center"><p>目前沒有專案</p></div>';
+                    } else {
+                        renderProjectCards(response.data, 'projects-container');
+                        
+                        // 重新初始化 AOS 動畫
+                        setTimeout(() => {
+                            AOS.refresh();
+                        }, 100);
+                    }
+                } else {
+                    document.getElementById('projects-container').innerHTML = 
+                        '<div class="text-center"><p>目前沒有專案</p></div>';
+                }
+            } catch (error) {
+                console.error('載入專案失敗:', error);
+                document.getElementById('projects-container').innerHTML = 
+                    '<div class="text-center"><p class="error-message">載入專案時發生錯誤</p></div>';
+            }
+        }
+        
+        // 頁面載入完成後執行
+        document.addEventListener('DOMContentLoaded', () => {
+            loadProjects();
+        });
+    </script>
+</body>
+</html>

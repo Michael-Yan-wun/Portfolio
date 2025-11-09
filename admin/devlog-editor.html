@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>開發紀錄管理 - 管理系統</title>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="../frontend/css/main.css">
+    <link rel="stylesheet" href="css/admin.css">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Highlight.js -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+</head>
+<body>
+    <div class="admin-layout">
+        <!-- 側邊欄 -->
+        <aside class="admin-sidebar">
+            <div class="admin-sidebar-header">
+                <h2>管理系統</h2>
+            </div>
+            
+            <nav>
+                <ul class="admin-nav">
+                    <li><a href="dashboard.html"><i class="fas fa-home"></i> 首頁</a></li>
+                    <li><a href="project-editor.html"><i class="fas fa-project-diagram"></i> 專案管理</a></li>
+                    <li><a href="devlog-editor.html" class="active"><i class="fas fa-book"></i> 開發紀錄</a></li>
+                    <li><a href="../frontend/index.html" target="_blank"><i class="fas fa-external-link-alt"></i> 前台網站</a></li>
+                    <li><a href="#" id="logout-btn"><i class="fas fa-sign-out-alt"></i> 登出</a></li>
+                </ul>
+            </nav>
+        </aside>
+        
+        <!-- 主要內容 -->
+        <main class="admin-content">
+            <div class="admin-header">
+                <h1>開發紀錄管理</h1>
+                <div class="admin-actions">
+                    <button class="btn btn-primary" id="new-devlog-btn">
+                        <i class="fas fa-plus"></i> 新增開發紀錄
+                    </button>
+                </div>
+            </div>
+            
+            <!-- 開發紀錄列表 -->
+            <div id="devlog-list-view" class="data-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>標題</th>
+                            <th>分類</th>
+                            <th>標籤</th>
+                            <th>建立時間</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="devlogs-tbody"></tbody>
+                </table>
+            </div>
+            
+            <!-- 編輯表單 -->
+            <div id="devlog-form-view" style="display: none;">
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                        <h2 id="form-title">新增開發紀錄</h2>
+                        <button class="btn btn-secondary" id="cancel-btn">
+                            <i class="fas fa-times"></i> 取消
+                        </button>
+                    </div>
+                    
+                    <form id="devlog-form">
+                        <input type="hidden" id="devlog-id">
+                        
+                        <div class="form-group">
+                            <label for="title">標題 *</label>
+                            <input type="text" id="title" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="category">分類</label>
+                            <input type="text" id="category" placeholder="例如：前端開發、後端開發">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="tags">標籤（用逗號分隔）</label>
+                            <input type="text" id="tags" placeholder="例如：React, JavaScript, CSS">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>內容（Markdown）*</label>
+                        </div>
+                        
+                        <div class="editor-container">
+                            <div class="editor-panel">
+                                <h3>編輯</h3>
+                                <textarea id="content-editor" class="editor-textarea" required></textarea>
+                            </div>
+                            <div class="editor-panel">
+                                <h3>預覽</h3>
+                                <div id="content-preview" class="editor-preview"></div>
+                            </div>
+                        </div>
+                        
+                        <div style="margin-top: 2rem; display: flex; gap: 1rem;">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> 儲存
+                            </button>
+                            <button type="button" class="btn btn-secondary" id="cancel-btn-2">
+                                取消
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <!-- JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="../frontend/js/utils.js"></script>
+    <script src="../frontend/js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/admin-api.js"></script>
+    <script src="js/editor.js"></script>
+    
+    <script>
+        let editor;
+        let currentDevlogId = null;
+        
+        // 載入開發紀錄列表
+        async function loadDevlogs() {
+            try {
+                const response = await api.getAllDevlogs();
+                const tbody = document.getElementById('devlogs-tbody');
+                
+                if (response.success && response.data && response.data.length > 0) {
+                    tbody.innerHTML = response.data.map(log => `
+                        <tr>
+                            <td>${log.title}</td>
+                            <td>${log.category || '-'}</td>
+                            <td>
+                                ${(log.tags || []).slice(0, 3).map(tag => 
+                                    `<span class="tech-tag">${tag}</span>`
+                                ).join(' ')}
+                            </td>
+                            <td>${formatDate(log.created_at, 'date')}</td>
+                            <td>
+                                <div class="actions">
+                                    <button class="btn btn-secondary" onclick="editDevlog(${log.id})">
+                                        <i class="fas fa-edit"></i> 編輯
+                                    </button>
+                                    <button class="btn btn-secondary" onclick="deleteDevlog(${log.id})">
+                                        <i class="fas fa-trash"></i> 刪除
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    `).join('');
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">目前沒有開發紀錄</td></tr>';
+                }
+            } catch (error) {
+                console.error('載入開發紀錄列表失敗:', error);
+            }
+        }
+        
+        // 顯示表單
+        function showForm(isEdit = false) {
+            document.getElementById('devlog-list-view').style.display = 'none';
+            document.getElementById('devlog-form-view').style.display = 'block';
+            document.getElementById('form-title').textContent = isEdit ? '編輯開發紀錄' : '新增開發紀錄';
+            
+            if (!isEdit) {
+                document.getElementById('devlog-form').reset();
+                document.getElementById('devlog-id').value = '';
+                currentDevlogId = null;
+                if (editor) editor.clear();
+            }
+        }
+        
+        // 隱藏表單
+        function hideForm() {
+            document.getElementById('devlog-list-view').style.display = 'block';
+            document.getElementById('devlog-form-view').style.display = 'none';
+            loadDevlogs();
+        }
+        
+        // 編輯開發紀錄
+        async function editDevlog(id) {
+            try {
+                const response = await api.getDevlogById(id);
+                
+                if (response.success && response.data) {
+                    const log = response.data;
+                    currentDevlogId = id;
+                    
+                    document.getElementById('devlog-id').value = id;
+                    document.getElementById('title').value = log.title;
+                    document.getElementById('category').value = log.category || '';
+                    document.getElementById('tags').value = (log.tags || []).join(', ');
+                    
+                    if (editor) {
+                        editor.setValue(log.content || '');
+                    }
+                    
+                    showForm(true);
+                }
+            } catch (error) {
+                console.error('載入開發紀錄失敗:', error);
+            }
+        }
+        
+        // 刪除開發紀錄
+        async function deleteDevlog(id) {
+            if (!confirm('確定要刪除這個開發紀錄嗎？')) return;
+            
+            try {
+                const response = await adminApi.deleteDevlogWithAuth(id);
+                
+                if (response.success) {
+                    api.showSuccessMessage('開發紀錄已刪除');
+                    loadDevlogs();
+                }
+            } catch (error) {
+                console.error('刪除開發紀錄失敗:', error);
+            }
+        }
+        
+        // 表單提交
+        document.getElementById('devlog-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const devlogData = {
+                title: document.getElementById('title').value.trim(),
+                content: editor ? editor.getValue() : '',
+                category: document.getElementById('category').value.trim(),
+                tags: document.getElementById('tags').value
+                    .split(',')
+                    .map(t => t.trim())
+                    .filter(t => t)
+            };
+            
+            if (!devlogData.content) {
+                api.showErrorMessage('請輸入內容');
+                return;
+            }
+            
+            try {
+                let response;
+                if (currentDevlogId) {
+                    response = await adminApi.updateDevlogWithAuth(currentDevlogId, devlogData);
+                } else {
+                    response = await adminApi.createDevlogWithAuth(devlogData);
+                }
+                
+                if (response.success) {
+                    api.showSuccessMessage(currentDevlogId ? '開發紀錄已更新' : '開發紀錄已建立');
+                    hideForm();
+                }
+            } catch (error) {
+                console.error('儲存開發紀錄失敗:', error);
+            }
+        });
+        
+        // 頁面載入完成後執行
+        document.addEventListener('DOMContentLoaded', async () => {
+            await new Promise(resolve => setTimeout(resolve, 100));
+            
+            // 初始化編輯器
+            editor = new MarkdownEditor('content-editor', 'content-preview');
+            
+            // 綁定按鈕事件
+            document.getElementById('new-devlog-btn').addEventListener('click', () => showForm(false));
+            document.getElementById('cancel-btn').addEventListener('click', hideForm);
+            document.getElementById('cancel-btn-2').addEventListener('click', hideForm);
+            
+            // 檢查是否有編輯參數
+            const editId = getQueryParam('id');
+            if (editId) {
+                editDevlog(editId);
+            } else {
+                loadDevlogs();
+            }
+        });
+        
+        // 全域函式
+        window.editDevlog = editDevlog;
+        window.deleteDevlog = deleteDevlog;
+    </script>
+</body>
+</html>

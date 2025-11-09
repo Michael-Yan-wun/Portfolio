@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登入 - 後台管理系統</title>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="../frontend/css/main.css">
+    <link rel="stylesheet" href="css/admin.css">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-box">
+            <div class="login-header">
+                <i class="fas fa-user-shield"></i>
+                <h1>後台管理系統</h1>
+                <p>請登入以繼續</p>
+            </div>
+            
+            <form id="login-form" class="login-form">
+                <div class="form-group">
+                    <label for="username">
+                        <i class="fas fa-user"></i> 使用者名稱
+                    </label>
+                    <input type="text" id="username" name="username" required 
+                           placeholder="請輸入使用者名稱" autocomplete="username">
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">
+                        <i class="fas fa-lock"></i> 密碼
+                    </label>
+                    <input type="password" id="password" name="password" required 
+                           placeholder="請輸入密碼" autocomplete="current-password">
+                </div>
+                
+                <div id="error-message" class="error-message" style="display: none;"></div>
+                
+                <button type="submit" class="btn btn-primary btn-block" id="login-btn">
+                    <i class="fas fa-sign-in-alt"></i> 登入
+                </button>
+            </form>
+            
+            <div class="login-footer">
+                <p>預設帳號：admin / admin123</p>
+                <a href="../frontend/index.html">返回前台</a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- JavaScript -->
+    <script src="../frontend/js/utils.js"></script>
+    <script src="../frontend/js/api.js"></script>
+    
+    <script>
+        // 檢查是否已登入
+        const token = storage.get('jwt_token');
+        if (token) {
+            // 驗證 token 是否有效
+            api.verifyToken(token).then(response => {
+                if (response.valid) {
+                    window.location.href = 'dashboard.html';
+                }
+            }).catch(() => {
+                // Token 無效，清除並繼續顯示登入頁面
+                storage.remove('jwt_token');
+            });
+        }
+        
+        // 登入表單處理
+        const loginForm = document.getElementById('login-form');
+        const errorMessage = document.getElementById('error-message');
+        const loginBtn = document.getElementById('login-btn');
+        
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            
+            // 隱藏錯誤訊息
+            errorMessage.style.display = 'none';
+            
+            // 禁用按鈕
+            loginBtn.disabled = true;
+            loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 登入中...';
+            
+            try {
+                const response = await api.login(username, password);
+                
+                if (response.success && response.token) {
+                    // 儲存 token
+                    storage.set('jwt_token', response.token);
+                    
+                    // 顯示成功訊息
+                    api.showSuccessMessage('登入成功！');
+                    
+                    // 跳轉到後台首頁
+                    setTimeout(() => {
+                        window.location.href = 'dashboard.html';
+                    }, 500);
+                } else {
+                    throw new Error('登入失敗');
+                }
+            } catch (error) {
+                console.error('登入錯誤:', error);
+                errorMessage.textContent = error.message || '登入失敗，請檢查使用者名稱和密碼';
+                errorMessage.style.display = 'block';
+                
+                // 恢復按鈕
+                loginBtn.disabled = false;
+                loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> 登入';
+            }
+        });
+    </script>
+</body>
+</html>

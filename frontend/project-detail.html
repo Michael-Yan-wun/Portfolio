@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="專案詳情">
+    <title>專案詳情 - DevPortfolio</title>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Highlight.js -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    
+    <!-- AOS 動畫庫 -->
+    <link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css">
+</head>
+<body data-page="projects">
+    <!-- 導航列 -->
+    <div id="navbar-container"></div>
+    
+    <!-- 專案詳情區塊 -->
+    <section class="container" style="padding-top: 120px;">
+        <div id="project-detail-container">
+            <div class="flex-center" style="min-height: 400px;">
+                <div class="loading"></div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- 頁尾 -->
+    <div id="footer-container"></div>
+    
+    <!-- JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/components/navbar.js"></script>
+    <script src="js/components/footer.js"></script>
+    
+    <script>
+        // 初始化 AOS 動畫
+        AOS.init({
+            duration: 1000,
+            once: true
+        });
+        
+        // 點讚按鈕類別
+        class LikeButton {
+            constructor(itemType, itemId, initialCount) {
+                this.itemType = itemType;
+                this.itemId = itemId;
+                this.count = initialCount;
+                this.isLiked = this.checkLikedStatus();
+            }
+            
+            checkLikedStatus() {
+                const likedItems = storage.get('likedItems', {});
+                const key = `${this.itemType}-${this.itemId}`;
+                return likedItems[key] === true;
+            }
+            
+            saveLikedStatus() {
+                const likedItems = storage.get('likedItems', {});
+                const key = `${this.itemType}-${this.itemId}`;
+                likedItems[key] = true;
+                storage.set('likedItems', likedItems);
+            }
+            
+            render() {
+                const likedClass = this.isLiked ? 'liked' : '';
+                const icon = this.isLiked ? 'fas fa-heart' : 'far fa-heart';
+                
+                return `
+                    <button class="like-button ${likedClass}" id="like-btn" ${this.isLiked ? 'disabled' : ''}>
+                        <i class="${icon}"></i>
+                        <span id="like-count">${this.count}</span>
+                    </button>
+                `;
+            }
+            
+            async handleLike() {
+                if (this.isLiked) return;
+                
+                try {
+                    const response = await api.addLike(this.itemType, this.itemId);
+                    
+                    if (response.success) {
+                        this.count = response.count;
+                        this.isLiked = true;
+                        this.saveLikedStatus();
+                        
+                        // 更新 UI
+                        const btn = document.getElementById('like-btn');
+                        const countSpan = document.getElementById('like-count');
+                        const icon = btn.querySelector('i');
+                        
+                        btn.classList.add('liked');
+                        btn.disabled = true;
+                        icon.className = 'fas fa-heart';
+                        countSpan.textContent = this.count;
+                        
+                        api.showSuccessMessage('感謝你的點讚！');
+                    }
+                } catch (error) {
+                    console.error('點讚失敗:', error);
+                }
+            }
+        }
+        
+        // 載入專案詳情
+        async function loadProjectDetail() {
+            const projectId = getQueryParam('id');
+            
+            if (!projectId) {
+                document.getElementById('project-detail-container').innerHTML = 
+                    '<div class="text-center"><p class="error-message">找不到專案 ID</p></div>';
+                return;
+            }
+            
+            try {
+                const response = await api.getProjectById(projectId);
+                
+                if (response.success && response.data) {
+                    renderProjectDetail(response.data);
+                } else {
+                    document.getElementById('project-detail-container').innerHTML = 
+                        '<div class="text-center"><p class="error-message">找不到該專案</p></div>';
+                }
+            } catch (error) {
+                console.error('載入專案詳情失敗:', error);
+                document.getElementById('project-detail-container').innerHTML = 
+                    '<div class="text-center"><p class="error-message">載入專案詳情時發生錯誤</p></div>';
+            }
+        }
+        
+        // 渲染專案詳情
+        function renderProjectDetail(project) {
+            const container = document.getElementById('project-detail-container');
+            
+            // 轉換 Markdown 為 HTML
+            const contentHTML = project.content ? markdownToHTML(project.content) : '<p>暫無詳細內容</p>';
+            
+            // 建立點讚按鈕
+            const likeButton = new LikeButton('project', project.id, project.likes || 0);
+            
+            const html = `
+                <div data-aos="fade-up">
+                    <div style="margin-bottom: 2rem;">
+                        <a href="projects.html" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> 返回專案列表
+                        </a>
+                    </div>
+                    
+                    <h1>${project.title}</h1>
+                    <p class="text-secondary" style="font-size: 1.2rem; margin-bottom: 2rem;">
+                        ${project.description || ''}
+                    </p>
+                    
+                    <div style="display: flex; gap: 1rem; align-items: center; margin-bottom: 2rem; flex-wrap: wrap;">
+                        <div class="tech-tags">
+                            ${(project.technologies || []).map(tech => 
+                                `<span class="tech-tag">${tech}</span>`
+                            ).join('')}
+                        </div>
+                        
+                        <div style="margin-left: auto;">
+                            ${likeButton.render()}
+                        </div>
+                    </div>
+                    
+                    ${project.thumbnail_url ? `
+                        <div style="margin-bottom: 2rem;">
+                            <img src="${project.thumbnail_url}" alt="${project.title}" 
+                                 style="width: 100%; border-radius: var(--radius-lg); box-shadow: var(--shadow-lg);">
+                        </div>
+                    ` : ''}
+                    
+                    <div style="display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap;">
+                        ${project.demo_url ? `
+                            <a href="${project.demo_url}" target="_blank" class="btn btn-primary">
+                                <i class="fas fa-external-link-alt"></i> 線上展示
+                            </a>
+                        ` : ''}
+                        ${project.repo_url ? `
+                            <a href="${project.repo_url}" target="_blank" class="btn btn-secondary">
+                                <i class="fab fa-github"></i> 原始碼
+                            </a>
+                        ` : ''}
+                    </div>
+                    
+                    <div class="card">
+                        <h2>專案詳情</h2>
+                        <div class="markdown-content">
+                            ${contentHTML}
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 2rem; text-align: center;">
+                        <p class="text-secondary">建立時間：${formatDate(project.created_at, 'date')}</p>
+                    </div>
+                </div>
+            `;
+            
+            container.innerHTML = html;
+            
+            // 套用語法高亮
+            document.querySelectorAll('pre code').forEach((block) => {
+                hljs.highlightElement(block);
+            });
+            
+            // 綁定點讚按鈕事件
+            const likeBtn = document.getElementById('like-btn');
+            if (likeBtn && !likeButton.isLiked) {
+                likeBtn.addEventListener('click', () => likeButton.handleLike());
+            }
+        }
+        
+        // 頁面載入完成後執行
+        document.addEventListener('DOMContentLoaded', () => {
+            loadProjectDetail();
+        });
+    </script>
+</body>
+</html>

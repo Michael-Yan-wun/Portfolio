@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="開發紀錄 - 我的學習與成長歷程">
+    <title>開發紀錄 - DevPortfolio</title>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Highlight.js -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    
+    <!-- AOS 動畫庫 -->
+    <link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css">
+</head>
+<body data-page="devlog">
+    <!-- 導航列 -->
+    <div id="navbar-container"></div>
+    
+    <!-- 開發紀錄區塊 -->
+    <section class="container" style="padding-top: 120px;">
+        <div class="section-title" data-aos="fade-up">
+            <h2>開發紀錄</h2>
+            <p>記錄我的學習與成長歷程</p>
+        </div>
+        
+        <!-- 篩選按鈕 -->
+        <div class="filter-buttons" id="filter-buttons">
+            <button class="filter-btn active" data-category="">全部</button>
+        </div>
+        
+        <!-- 時間軸 -->
+        <div id="devlog-container" class="timeline"></div>
+    </section>
+    
+    <!-- 頁尾 -->
+    <div id="footer-container"></div>
+    
+    <!-- JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/components/navbar.js"></script>
+    <script src="js/components/footer.js"></script>
+    
+    <script>
+        // 初始化 AOS 動畫
+        AOS.init({
+            duration: 1000,
+            once: true
+        });
+        
+        let allDevlogs = [];
+        let currentCategory = '';
+        
+        // 點讚按鈕類別
+        class LikeButton {
+            constructor(itemType, itemId, initialCount) {
+                this.itemType = itemType;
+                this.itemId = itemId;
+                this.count = initialCount;
+                this.isLiked = this.checkLikedStatus();
+            }
+            
+            checkLikedStatus() {
+                const likedItems = storage.get('likedItems', {});
+                const key = `${this.itemType}-${this.itemId}`;
+                return likedItems[key] === true;
+            }
+            
+            saveLikedStatus() {
+                const likedItems = storage.get('likedItems', {});
+                const key = `${this.itemType}-${this.itemId}`;
+                likedItems[key] = true;
+                storage.set('likedItems', likedItems);
+            }
+            
+            render() {
+                const likedClass = this.isLiked ? 'liked' : '';
+                const icon = this.isLiked ? 'fas fa-heart' : 'far fa-heart';
+                
+                return `
+                    <button class="like-button ${likedClass}" data-item-type="${this.itemType}" data-item-id="${this.itemId}" ${this.isLiked ? 'disabled' : ''}>
+                        <i class="${icon}"></i>
+                        <span class="like-count">${this.count}</span>
+                    </button>
+                `;
+            }
+            
+            async handleLike(button) {
+                if (this.isLiked) return;
+                
+                try {
+                    const response = await api.addLike(this.itemType, this.itemId);
+                    
+                    if (response.success) {
+                        this.count = response.count;
+                        this.isLiked = true;
+                        this.saveLikedStatus();
+                        
+                        // 更新 UI
+                        const countSpan = button.querySelector('.like-count');
+                        const icon = button.querySelector('i');
+                        
+                        button.classList.add('liked');
+                        button.disabled = true;
+                        icon.className = 'fas fa-heart';
+                        countSpan.textContent = this.count;
+                        
+                        api.showSuccessMessage('感謝你的點讚！');
+                    }
+                } catch (error) {
+                    console.error('點讚失敗:', error);
+                }
+            }
+        }
+        
+        // 載入所有開發紀錄
+        async function loadDevlogs() {
+            try {
+                showLoading('devlog-container');
+                const response = await api.getAllDevlogs();
+                
+                if (response.success && response.data) {
+                    allDevlogs = response.data;
+                    
+                    // 建立分類篩選按鈕
+                    createFilterButtons();
+                    
+                    // 渲染開發紀錄
+                    renderDevlogs(allDevlogs);
+                } else {
+                    document.getElementById('devlog-container').innerHTML = 
+                        '<div class="text-center"><p>目前沒有開發紀錄</p></div>';
+                }
+            } catch (error) {
+                console.error('載入開發紀錄失敗:', error);
+                document.getElementById('devlog-container').innerHTML = 
+                    '<div class="text-center"><p class="error-message">載入開發紀錄時發生錯誤</p></div>';
+            }
+        }
+        
+        // 建立分類篩選按鈕
+        function createFilterButtons() {
+            const categories = [...new Set(allDevlogs.map(log => log.category).filter(Boolean))];
+            const filterContainer = document.getElementById('filter-buttons');
+            
+            let buttonsHTML = '<button class="filter-btn active" data-category="">全部</button>';
+            categories.forEach(category => {
+                buttonsHTML += `<button class="filter-btn" data-category="${category}">${category}</button>`;
+            });
+            
+            filterContainer.innerHTML = buttonsHTML;
+            
+            // 綁定篩選事件
+            filterContainer.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    // 更新按鈕狀態
+                    filterContainer.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    
+                    // 篩選開發紀錄
+                    currentCategory = btn.dataset.category;
+                    const filtered = currentCategory 
+                        ? allDevlogs.filter(log => log.category === currentCategory)
+                        : allDevlogs;
+                    
+                    renderDevlogs(filtered);
+                });
+            });
+        }
+        
+        // 渲染開發紀錄
+        function renderDevlogs(devlogs) {
+            const container = document.getElementById('devlog-container');
+            
+            if (devlogs.length === 0) {
+                container.innerHTML = '<div class="text-center"><p>沒有符合條件的開發紀錄</p></div>';
+                return;
+            }
+            
+            const html = devlogs.map((log, index) => {
+                // 截斷內容
+                const contentPreview = truncateText(log.content, 200);
+                const contentHTML = markdownToHTML(contentPreview);
+                
+                // 建立點讚按鈕
+                const likeButton = new LikeButton('devlog', log.id, 0);
+                
+                return `
+                    <div class="timeline-item" data-aos="fade-up" data-aos-delay="${Math.min(index * 100, 500)}">
+                        <div class="timeline-date">${formatDate(log.created_at, 'date')}</div>
+                        <div class="timeline-content">
+                            <h3 class="timeline-title">${log.title}</h3>
+                            ${log.category ? `<p style="color: var(--primary-light); margin-bottom: 0.5rem;"><i class="fas fa-folder"></i> ${log.category}</p>` : ''}
+                            <div class="markdown-content">
+                                ${contentHTML}
+                            </div>
+                            ${log.tags && log.tags.length > 0 ? `
+                                <div class="tech-tags" style="margin-top: 1rem;">
+                                    ${log.tags.map(tag => `<span class="tech-tag">${tag}</span>`).join('')}
+                                </div>
+                            ` : ''}
+                            <div style="margin-top: 1rem;">
+                                ${likeButton.render()}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            container.innerHTML = html;
+            
+            // 套用語法高亮
+            document.querySelectorAll('pre code').forEach((block) => {
+                hljs.highlightElement(block);
+            });
+            
+            // 綁定點讚按鈕事件
+            container.querySelectorAll('.like-button').forEach(btn => {
+                if (!btn.disabled) {
+                    const itemType = btn.dataset.itemType;
+                    const itemId = btn.dataset.itemId;
+                    
+                    // 取得初始點讚數
+                    api.getLikeCount(itemType, itemId).then(response => {
+                        if (response.success) {
+                            btn.querySelector('.like-count').textContent = response.count;
+                        }
+                    });
+                    
+                    btn.addEventListener('click', async () => {
+                        const likeBtn = new LikeButton(itemType, itemId, 0);
+                        await likeBtn.handleLike(btn);
+                    });
+                }
+            });
+            
+            // 重新初始化 AOS 動畫
+            setTimeout(() => {
+                AOS.refresh();
+            }, 100);
+        }
+        
+        // 頁面載入完成後執行
+        document.addEventListener('DOMContentLoaded', () => {
+            loadDevlogs();
+        });
+    </script>
+</body>
+</html>

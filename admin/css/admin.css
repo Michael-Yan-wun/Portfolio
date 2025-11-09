@@ -1,0 +1,429 @@
+/* 後台管理系統樣式 */
+
+/* 登入頁面 */
+.login-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-dark);
+    background-image: 
+        radial-gradient(circle at 20% 50%, rgba(155, 135, 245, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(236, 72, 153, 0.1) 0%, transparent 50%);
+}
+
+.login-box {
+    background: var(--bg-card);
+    padding: var(--spacing-2xl);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-xl);
+    width: 100%;
+    max-width: 450px;
+    margin: var(--spacing-md);
+}
+
+.login-header {
+    text-align: center;
+    margin-bottom: var(--spacing-xl);
+}
+
+.login-header i {
+    font-size: 4rem;
+    color: var(--primary);
+    margin-bottom: var(--spacing-md);
+}
+
+.login-header h1 {
+    font-size: 2rem;
+    margin-bottom: var(--spacing-sm);
+}
+
+.login-header p {
+    color: var(--text-secondary);
+}
+
+.login-form {
+    margin-bottom: var(--spacing-lg);
+}
+
+.form-group {
+    margin-bottom: var(--spacing-lg);
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: var(--spacing-sm);
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.form-group label i {
+    color: var(--primary);
+    margin-right: var(--spacing-xs);
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+    width: 100%;
+    padding: var(--spacing-sm) var(--spacing-md);
+    background: var(--bg-dark);
+    border: 2px solid rgba(155, 135, 245, 0.3);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    font-size: 1rem;
+    transition: all var(--transition-base);
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(155, 135, 245, 0.1);
+}
+
+.form-group textarea {
+    min-height: 120px;
+    resize: vertical;
+    font-family: inherit;
+}
+
+.btn-block {
+    width: 100%;
+}
+
+.login-footer {
+    text-align: center;
+    padding-top: var(--spacing-lg);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.login-footer p {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-bottom: var(--spacing-sm);
+}
+
+.login-footer a {
+    color: var(--primary);
+    text-decoration: none;
+    font-size: 0.9rem;
+}
+
+.login-footer a:hover {
+    color: var(--primary-light);
+}
+
+/* 後台布局 */
+.admin-layout {
+    display: flex;
+    min-height: 100vh;
+    background: var(--bg-dark);
+}
+
+.admin-sidebar {
+    width: 250px;
+    background: var(--bg-card);
+    padding: var(--spacing-lg);
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
+    position: fixed;
+    height: 100vh;
+    overflow-y: auto;
+}
+
+.admin-sidebar-header {
+    text-align: center;
+    margin-bottom: var(--spacing-xl);
+    padding-bottom: var(--spacing-lg);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.admin-sidebar-header h2 {
+    font-size: 1.5rem;
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.admin-nav {
+    list-style: none;
+}
+
+.admin-nav li {
+    margin-bottom: var(--spacing-sm);
+}
+
+.admin-nav a {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm) var(--spacing-md);
+    color: var(--text-secondary);
+    text-decoration: none;
+    border-radius: var(--radius-md);
+    transition: all var(--transition-base);
+}
+
+.admin-nav a:hover,
+.admin-nav a.active {
+    background: rgba(155, 135, 245, 0.2);
+    color: var(--primary-light);
+}
+
+.admin-nav i {
+    width: 20px;
+    text-align: center;
+}
+
+.admin-content {
+    flex: 1;
+    margin-left: 250px;
+    padding: var(--spacing-xl);
+}
+
+.admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-xl);
+    padding-bottom: var(--spacing-lg);
+    border-bottom: 2px solid rgba(155, 135, 245, 0.3);
+}
+
+.admin-header h1 {
+    font-size: 2rem;
+}
+
+.admin-actions {
+    display: flex;
+    gap: var(--spacing-md);
+}
+
+/* 資料表格 */
+.data-table {
+    width: 100%;
+    background: var(--bg-card);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-md);
+}
+
+.data-table table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.data-table th,
+.data-table td {
+    padding: var(--spacing-md);
+    text-align: left;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.data-table th {
+    background: rgba(155, 135, 245, 0.2);
+    color: var(--primary-light);
+    font-weight: 600;
+}
+
+.data-table tr:hover {
+    background: rgba(155, 135, 245, 0.05);
+}
+
+.data-table .actions {
+    display: flex;
+    gap: var(--spacing-sm);
+}
+
+.data-table .actions button {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.9rem;
+}
+
+/* 編輯器 */
+.editor-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-lg);
+    margin-top: var(--spacing-lg);
+}
+
+.editor-panel {
+    background: var(--bg-card);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    box-shadow: var(--shadow-md);
+}
+
+.editor-panel h3 {
+    margin-bottom: var(--spacing-md);
+    color: var(--primary-light);
+}
+
+.editor-toolbar {
+    display: flex;
+    gap: var(--spacing-xs);
+    margin-bottom: var(--spacing-md);
+    padding: var(--spacing-sm);
+    background: var(--bg-dark);
+    border-radius: var(--radius-md);
+    flex-wrap: wrap;
+}
+
+.editor-toolbar button {
+    padding: 0.4rem 0.8rem;
+    background: transparent;
+    border: 1px solid var(--primary);
+    color: var(--primary);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all var(--transition-base);
+    font-size: 0.9rem;
+}
+
+.editor-toolbar button:hover {
+    background: var(--primary);
+    color: var(--text-primary);
+}
+
+.editor-textarea {
+    width: 100%;
+    min-height: 400px;
+    padding: var(--spacing-md);
+    background: var(--bg-dark);
+    border: 2px solid rgba(155, 135, 245, 0.3);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    font-family: 'Fira Code', monospace;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    resize: vertical;
+}
+
+.editor-textarea:focus {
+    outline: none;
+    border-color: var(--primary);
+}
+
+.editor-preview {
+    min-height: 400px;
+    max-height: 600px;
+    overflow-y: auto;
+    padding: var(--spacing-md);
+    background: var(--bg-dark);
+    border: 2px solid rgba(155, 135, 245, 0.3);
+    border-radius: var(--radius-md);
+}
+
+/* 統計卡片 */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--spacing-lg);
+    margin-bottom: var(--spacing-xl);
+}
+
+.stat-card {
+    background: var(--bg-card);
+    padding: var(--spacing-lg);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    text-align: center;
+}
+
+.stat-card i {
+    font-size: 2.5rem;
+    color: var(--primary);
+    margin-bottom: var(--spacing-sm);
+}
+
+.stat-card h3 {
+    font-size: 2rem;
+    margin-bottom: var(--spacing-xs);
+}
+
+.stat-card p {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+/* 圖片上傳 */
+.image-upload {
+    margin-bottom: var(--spacing-lg);
+}
+
+.image-upload-area {
+    border: 2px dashed rgba(155, 135, 245, 0.5);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-xl);
+    text-align: center;
+    cursor: pointer;
+    transition: all var(--transition-base);
+}
+
+.image-upload-area:hover {
+    border-color: var(--primary);
+    background: rgba(155, 135, 245, 0.05);
+}
+
+.image-upload-area i {
+    font-size: 3rem;
+    color: var(--primary);
+    margin-bottom: var(--spacing-md);
+}
+
+.image-preview {
+    margin-top: var(--spacing-md);
+    text-align: center;
+}
+
+.image-preview img {
+    max-width: 100%;
+    max-height: 300px;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md);
+}
+
+/* 響應式 */
+@media (max-width: 1024px) {
+    .editor-container {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .admin-sidebar {
+        transform: translateX(-100%);
+        transition: transform var(--transition-base);
+        z-index: 1000;
+    }
+    
+    .admin-sidebar.active {
+        transform: translateX(0);
+    }
+    
+    .admin-content {
+        margin-left: 0;
+    }
+    
+    .admin-header {
+        flex-direction: column;
+        gap: var(--spacing-md);
+        align-items: flex-start;
+    }
+    
+    .admin-actions {
+        width: 100%;
+        flex-direction: column;
+    }
+    
+    .admin-actions .btn {
+        width: 100%;
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+}

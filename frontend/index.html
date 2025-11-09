@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="學生開發者個人作品集與開發紀錄">
+    <title>首頁 - DevPortfolio</title>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- AOS 動畫庫 -->
+    <link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css">
+</head>
+<body data-page="home">
+    <!-- 導航列 -->
+    <div id="navbar-container"></div>
+    
+    <!-- Hero 區塊 -->
+    <section class="hero bg-pattern">
+        <div id="particles-js" style="position: absolute; width: 100%; height: 100%; top: 0; left: 0; z-index: 1;"></div>
+        <div class="hero-content">
+            <h1 data-aos="fade-up">歡迎來到我的作品集</h1>
+            <p data-aos="fade-up" data-aos-delay="200">
+                記錄開發歷程，展示專案作品，分享學習心得
+            </p>
+            <div class="hero-buttons" data-aos="fade-up" data-aos-delay="400">
+                <a href="projects.html" class="btn btn-primary">查看專案</a>
+                <a href="about.html" class="btn btn-secondary">關於我</a>
+            </div>
+        </div>
+    </section>
+    
+    <!-- 特色區塊 -->
+    <section class="container">
+        <div class="section-title" data-aos="fade-up">
+            <h2>我的專長</h2>
+            <p>持續學習，不斷進步</p>
+        </div>
+        
+        <div class="skills-grid">
+            <div class="skill-item" data-aos="fade-up" data-aos-delay="100">
+                <div class="skill-icon"><i class="fab fa-html5"></i></div>
+                <div class="skill-name">前端開發</div>
+            </div>
+            <div class="skill-item" data-aos="fade-up" data-aos-delay="200">
+                <div class="skill-icon"><i class="fab fa-node-js"></i></div>
+                <div class="skill-name">後端開發</div>
+            </div>
+            <div class="skill-item" data-aos="fade-up" data-aos-delay="300">
+                <div class="skill-icon"><i class="fas fa-database"></i></div>
+                <div class="skill-name">資料庫</div>
+            </div>
+            <div class="skill-item" data-aos="fade-up" data-aos-delay="400">
+                <div class="skill-icon"><i class="fas fa-mobile-alt"></i></div>
+                <div class="skill-name">響應式設計</div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- 最新專案 -->
+    <section class="container">
+        <div class="section-title" data-aos="fade-up">
+            <h2>最新專案</h2>
+            <p>查看我最近的作品</p>
+        </div>
+        
+        <div id="latest-projects" class="projects-grid"></div>
+        
+        <div class="text-center mt-5" data-aos="fade-up">
+            <a href="projects.html" class="btn btn-primary">查看所有專案</a>
+        </div>
+    </section>
+    
+    <!-- 頁尾 -->
+    <div id="footer-container"></div>
+    
+    <!-- JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/components/navbar.js"></script>
+    <script src="js/components/footer.js"></script>
+    <script src="js/components/project-card.js"></script>
+    
+    <script>
+        // 初始化 AOS 動畫
+        AOS.init({
+            duration: 1000,
+            once: true
+        });
+        
+        // 初始化 Particles.js
+        if (typeof particlesJS !== 'undefined') {
+            particlesJS('particles-js', {
+                particles: {
+                    number: { value: 80, density: { enable: true, value_area: 800 } },
+                    color: { value: '#9b87f5' },
+                    shape: { type: 'circle' },
+                    opacity: { value: 0.5, random: false },
+                    size: { value: 3, random: true },
+                    line_linked: {
+                        enable: true,
+                        distance: 150,
+                        color: '#9b87f5',
+                        opacity: 0.4,
+                        width: 1
+                    },
+                    move: {
+                        enable: true,
+                        speed: 2,
+                        direction: 'none',
+                        random: false,
+                        straight: false,
+                        out_mode: 'out',
+                        bounce: false
+                    }
+                },
+                interactivity: {
+                    detect_on: 'canvas',
+                    events: {
+                        onhover: { enable: true, mode: 'repulse' },
+                        onclick: { enable: true, mode: 'push' },
+                        resize: true
+                    }
+                },
+                retina_detect: true
+            });
+        }
+        
+        // 載入最新專案
+        async function loadLatestProjects() {
+            try {
+                showLoading('latest-projects');
+                const response = await api.getAllProjects();
+                
+                if (response.success && response.data) {
+                    // 只顯示最新的 3 個專案
+                    const latestProjects = response.data.slice(0, 3);
+                    renderProjectCards(latestProjects, 'latest-projects');
+                } else {
+                    document.getElementById('latest-projects').innerHTML = 
+                        '<p class="text-center">目前沒有專案</p>';
+                }
+            } catch (error) {
+                console.error('載入專案失敗:', error);
+                document.getElementById('latest-projects').innerHTML = 
+                    '<p class="text-center error-message">載入專案時發生錯誤</p>';
+            }
+        }
+        
+        // 頁面載入完成後執行
+        document.addEventListener('DOMContentLoaded', () => {
+            loadLatestProjects();
+        });
+    </script>
+</body>
+</html>
